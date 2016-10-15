@@ -62,10 +62,7 @@ bool networkSorter(Network const& lhs, Network const& rhs) {
   return lhs.RSSI >= rhs.RSSI; // since values are negative this is reversed?
 }
 
-
-std::vector<Network> netArray;
-
-void printNetArray(){
+void printNetArray(std::vector<Network> netArray){
   int n = netArray.size();
   for (int i=0; i < n; i++){
     // String rssi = String(&netArray[i].RSSI);
@@ -80,7 +77,7 @@ void printNetArray(){
 
 Network constructNet(String SSID, int RSSI, int channel, bool encrypt);
 bool networkSorter(Network const& lhs, Network const& rhs);
-void scan();
+std::vector<Network> scan();
 void setupScan();
 
 
@@ -222,9 +219,7 @@ void updateData(OLEDDisplay *display) {
 }
 
 void drawNetStatus(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
-  // std::vector<Network> netArray = scan();
-  // netArray = scan();
-  scan();
+  std::vector<Network> netArray = scan();
   String lineItem = "";
   display->setTextAlignment(TEXT_ALIGN_LEFT);
   for (int i = 0; i < 5; i++){
@@ -266,16 +261,15 @@ void setupScan(){
   Serial.println("Setup done");
 }
 
-// std::vector<Network> populateNetArray(int n){
-void populateNetArray(int n){
-  // std::vector<Network> netArray(n);
+std::vector<Network> populateNetArray(int n){
+  std::vector<Network> netArray(n);
   for (int i=0; i < n; i++){
     netArray[i] = constructNet(WiFi.SSID(i), WiFi.RSSI(i), WiFi.channel(i), (WiFi.encryptionType(i) == ENC_TYPE_NONE));
   }
-  // return netArray;
+  return netArray;
 }
 
-void scan() {
+std::vector<Network> scan() {
   Serial.println("Starting Scan...");
   // WiFi.scanNetworks will return the number of networks found
   bool async = false;
@@ -284,10 +278,9 @@ void scan() {
 
   serialDebugScan(n);
 
-  // std::vector<Network> netArray = populateNetArray(n);
-  populateNetArray(n);
+  std::vector<Network> netArray = populateNetArray(n);
   std::sort(netArray.begin(), netArray.end(), networkSorter);
-  // return(netArray);
+  return(netArray);
 }
 
 void serialDebugScan(int n){
