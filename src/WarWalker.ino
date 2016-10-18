@@ -77,9 +77,9 @@ void printNetArray(std::vector<Network> netArray){
 
 Network constructNet(String SSID, int RSSI, int channel, bool encrypt);
 bool networkSorter(Network const& lhs, Network const& rhs);
-std::vector<Network> scan();
+void scan(std::vector<Network> *netArray);
 void setupScan();
-
+void populateNetArray(std::vector<Network> *netArray, int n);
 
 /***************************
  * Begin Settings
@@ -91,6 +91,8 @@ void setupScan();
 const char* WIFI_SSID = "ConciergeEntertainment";
 const char* WIFI_PWD = "djrebase";
 
+// Debug
+bool debug = true;
 
 // Setup
 const int UPDATE_INTERVAL_SECS = 10 * 60; // Update every 10 minutes
@@ -140,7 +142,9 @@ void setup() {
   Serial.begin(115200);
   Serial.println();
   Serial.println();
+  if (debug){Serial.println("Starting setup()");}
 
+  if (debug){Serial.println("Initializing display");}
   // initialize dispaly
   display.init();
   display.clear();
@@ -153,9 +157,13 @@ void setup() {
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   display.setContrast(255);
 
+
+  if (debug){Serial.println("Calling setupScan()");}
   // Setup to do WiFi Scan
   setupScan();
 
+  if (debug){Serial.println("Setting FPS");}
+  delay(1000);
   ui.setTargetFPS(30);
 
   ui.setActiveSymbol(activeSymbole);
@@ -189,6 +197,7 @@ void setup() {
 }
 
 void loop() {
+  if (debug){Serial.println("Starting loop()");}
 
   if (readyForWeatherUpdate && ui.getUiState()->frameState == FIXED) {
     updateData(&display);
@@ -200,6 +209,7 @@ void loop() {
     // You can do some work here
     // Don't do stuff if you are below your
     // time budget.
+    if (debug){Serial.println("we have some remainingTimeBudget");}
     delay(remainingTimeBudget);
   }
 
@@ -223,7 +233,10 @@ void updateData(OLEDDisplay *display) {
 }
 
 void drawNetStatus(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
-  std::vector<Network> netArray = scan();
+  if (debug){Serial.println("Starting drawNetStatus()");}
+
+  std::vector<Network> netArray;
+  scan(&netArray);
   String lineItem = "";
   display->setTextAlignment(TEXT_ALIGN_LEFT);
   for (int i = 0; i < 5; i++){
@@ -253,28 +266,22 @@ void setReadyForWeatherUpdate() {
 }
 
 
-
 void setupScan(){
-  Serial.begin(115200);
+  if (debug){Serial.println("Starting setupScan()");}
 
   // Set WiFi to station mode and disconnect from an AP if it was previously connected
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
+
+  if (debug){Serial.println("Done setupScan()...");}
   delay(100);
-
-  Serial.println("Setup done");
 }
 
-std::vector<Network> populateNetArray(int n){
-  std::vector<Network> netArray(n);
-  for (int i=0; i < n; i++){
-    netArray[i] = constructNet(WiFi.SSID(i), WiFi.RSSI(i), WiFi.channel(i), (WiFi.encryptionType(i) == ENC_TYPE_NONE));
-  }
-  return netArray;
-}
+// std::vector<Network> scan() {
+void scan(std::vector<Network> *netArray) {
+  if (debug){Serial.println("Starting scan()");}
 
-std::vector<Network> scan() {
-  Serial.println("Starting Scan...");
+  if (debug){Serial.println("Starting Scan...");}
   // WiFi.scanNetworks will return the number of networks found
   bool async = false;
   bool show_hidden = false;
@@ -282,10 +289,34 @@ std::vector<Network> scan() {
 
   serialDebugScan(n);
 
-  std::vector<Network> netArray = populateNetArray(n);
-  std::sort(netArray.begin(), netArray.end(), networkSorter);
-  return(netArray);
+  // This is replaced with shared/global memory
+  netArray = new std::vector<Network>(n);
+
+  populateNetArray(netArray, n);
+  // std::sort(netArray->begin(), netArray->end(), networkSorter);
+  // std::vector<Network> netArray = populateNetArray(n);
+  // std::sort(netArray.begin(), netArray.end(), networkSorter);
+  // return(netArray);
 }
+
+// std::vector<Network> populateNetArray(int n){
+void populateNetArray(std::vector<Network> *netArray, int n){
+  if (debug){Serial.println("Starting populateNetArray()");}
+
+  netArray->resize(n); //make sure vector is exact length
+
+  int i = 0;
+  for (std::vector<Network>::iterator it = netArray->begin(); it < netArray->end(); it++){
+  // for (int i=0; i < n; i++){
+    if (i >= n){
+      Serial.println("i => n. THIS IS BAD.");
+    }
+    netArray->insert(it, constructNet(WiFi.SSID(i), WiFi.RSSI(i), WiFi.channel(i), (WiFi.encryptionType(i) == ENC_TYPE_NONE)));
+    i++;
+  }
+  // return netArray;
+}
+
 
 void serialDebugScan(int n){
   Serial.println("scan done");
