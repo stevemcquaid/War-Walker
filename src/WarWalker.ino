@@ -146,7 +146,9 @@ void setup() {
   display.clear();
   display.display();
 
-  //display.flipScreenVertically();
+
+  // display.invertDisplay();
+  // display.flipScreenVertically();
   display.setFont(ArialMT_Plain_10);
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   display.setContrast(255);
@@ -179,10 +181,11 @@ void setup() {
 
   Serial.println("");
 
+  display.flipScreenVertically();
+
   updateData(&display);
 
   ticker.attach(UPDATE_INTERVAL_SECS, setReadyForWeatherUpdate);
-
 }
 
 void loop() {
@@ -213,9 +216,10 @@ void drawProgress(OLEDDisplay *display, int percentage, String label) {
 
 void updateData(OLEDDisplay *display) {
   drawProgress(display, 30, "Scanning Network...");
+  delay(500);
   readyForWeatherUpdate = false;
-  drawProgress(display, 100, "Done...");
-  delay(1000);
+  drawProgress(display, 80, "Herding Cats...");
+  delay(100);
 }
 
 void drawNetStatus(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
