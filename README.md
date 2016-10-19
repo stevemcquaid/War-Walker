@@ -20,7 +20,10 @@ You can build this project for under $6 in materials, assuming you have some bas
   Basically, it was first used as an add-on module for Arduino to add WiFi connectivity. As the chip grew popular, makers realized that the chip was powerful enough to write the programs on the chip itself, in addition to its regular TCP/IP functionalities. Over time, future evolutions added various auxiliary components allowing us to flash the chip without a separate FTDI board. We will be taking advantage of these capabilities to write software for this special platform.
 
 #### OLED Screen
-  This project uses a .96 inch, 128x64 pixel resolution OLED screen using the SSD1306 drivers. They are extremely cheap, and fairly high resolution for being smaller than a postage stamp.
+This project uses a .96 inch, 128x64 pixel resolution OLED screen using the SSD1306 drivers. They are extremely cheap, and fairly high resolution for being smaller than a postage stamp.
+
+#### MicroUSB cable.
+You have one of these in a drawer. I guarantee it. Or you can power it with a small lipo battery.
 
 ### Other Parts
 
