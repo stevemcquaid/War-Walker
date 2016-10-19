@@ -2,6 +2,8 @@
 
 This project was partly inspired by (War Collar Industries' Dope Scope)[http://warcollar.com/products/dopescope.html] and partly inspired by always having to fix friends' or family's WiFi Access Points.
 
+![Finished Product](images/finished.jpg)
+
 If being able to view the Access Points in real-time sounds interesting to you, this could be your next project!
 
 # What you'll need
@@ -20,10 +22,15 @@ You can build this project for under $6 in materials, assuming you have some bas
 #### OLED Screen
   This project uses a .96 inch, 128x64 pixel resolution OLED screen using the SSD1306 drivers. They are extremely cheap, and fairly high resolution for being smaller than a postage stamp.
 
-
 ### Other Parts
 
+![Breadboard](images/breadboard.jpg)
+
 I prototyped everything on a breadboard, then I soldered the OLED directly to a prototype PCB. There are 4 short 24AWG wires connecting the pins to stackable headers upon which the ESP8266 plugs in.
+
+![Reverse](images/reverse.jpg)
+
+![Side View](images/side.jpg)
 
 Optional Parts:
   * Breadboard
@@ -55,10 +62,10 @@ For these instructions, I will not discuss the hardware in much detail, as it wi
 Here is what I used:
 
 OLED Pins -> ESP8266 Pins
-GND -> G
-VCC -> v3
-SDA -> D3
-SCL -> D4
+  * GND -> G
+  * VCC -> v3
+  * SDA -> D3
+  * SCL -> D4
 
 ## Commands
 
