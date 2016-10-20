@@ -34,8 +34,6 @@ See more at http://blog.squix.ch
 #include "SSD1306Wire.h"
 #include "OLEDDisplayUi.h"
 #include "Wire.h"
-#include "WeatherStationFonts.h"
-#include "WeatherStationImages.h"
 #include "TimeClient.h"
 
 //the structure
@@ -80,130 +78,72 @@ bool networkSorter(Network const& lhs, Network const& rhs);
 std::vector<Network> scan();
 void setupScan();
 
-
-/***************************
- * Begin Settings
- **************************/
-// Please read http://blog.squix.org/weatherstation-getting-code-adapting-it
-// for setup instructions
-
-// WIFI
-const char* WIFI_SSID = "ConciergeEntertainment";
-const char* WIFI_PWD = "djrebase";
-
-
-// Setup
-const int UPDATE_INTERVAL_SECS = 10 * 60; // Update every 10 minutes
-
-// Display Settings
-const int I2C_DISPLAY_ADDRESS = 0x3c;
-const int SDA_PIN = D3;
-const int SDC_PIN = D4;
-
-// TimeClient settings
-const float UTC_OFFSET = -7;
-
-// Initialize the oled display for address 0x3c
-// sda-pin=14 and sdc-pin=12
-SSD1306Wire     display(I2C_DISPLAY_ADDRESS, SDA_PIN, SDC_PIN);
-OLEDDisplayUi   ui( &display );
-
-/***************************
- * End Settings
- **************************/
-
-// flag changed in the ticker function every 10 minutes
-bool readyForWeatherUpdate = false;
-
-String lastUpdate = "--";
-
-Ticker ticker;
-
 //declaring prototypes
 void drawProgress(OLEDDisplay *display, int percentage, String label);
 void updateData(OLEDDisplay *display);
-void drawNetStatus(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
-void drawHeaderOverlay(OLEDDisplay *display, OLEDDisplayUiState* state);
-void setReadyForWeatherUpdate();
+void drawNetStatus(OLEDDisplay *display);
 
 
-// Add frames
-// this array keeps function pointers to all frames
-// frames are the single views that slide from right to left
-FrameCallback frames[] = { drawNetStatus };
-int numberOfFrames = 1;
+// Include the correct display library
+// For a connection via I2C using Wire include
+#include "SSD1306.h" // alias for `#include "SSD1306Wire.h"`
+// or #include "SH1106.h" alis for `#include "SH1106Wire.h"`
+// For a connection via I2C using brzo_i2c (must be installed) include
+// #include <brzo_i2c.h> // Only needed for Arduino 1.6.5 and earlier
+// #include "SSD1306Brzo.h"
+// #include "SH1106Brzo.h"
+// For a connection via SPI include
+// #include <SPI.h> // Only needed for Arduino 1.6.5 and earlier
+// #include "SSD1306Spi.h"
+// #include "SH1106SPi.h"
 
-OverlayCallback overlays[] = { drawHeaderOverlay };
-int numberOfOverlays = 1;
+
+// Initialize the OLED display using SPI
+// D5 -> CLK
+// D7 -> MOSI (DOUT)
+// D0 -> RES
+// D2 -> DC
+// D8 -> CS
+// SSD1306Spi        display(D0, D2, D8);
+// or
+// SH1106Spi         display(D0, D2);
+
+// Initialize the OLED display using brzo_i2c
+// D3 -> SDA
+// D5 -> SCL
+// SSD1306Brzo display(0x3c, D3, D5);
+// or
+// SH1106Brzo  display(0x3c, D3, D5);
+
+// Initialize the OLED display using Wire library
+SSD1306  display(0x3c, D3, D4);
+// SH1106 display(0x3c, D3, D5);
 
 void setup() {
   Serial.begin(115200);
   Serial.println();
   Serial.println();
 
-  // initialize dispaly
+
+  // Initialising the UI will init the display too.
   display.init();
-  display.clear();
-  display.display();
-
-
-  // display.invertDisplay();
-  // display.flipScreenVertically();
-  display.setFont(ArialMT_Plain_10);
-  display.setTextAlignment(TEXT_ALIGN_CENTER);
-  display.setContrast(255);
-
-  // Setup to do WiFi Scan
-  setupScan();
-
-  ui.setTargetFPS(30);
-
-  ui.setActiveSymbol(activeSymbole);
-  ui.setInactiveSymbol(inactiveSymbole);
-
-  // You can change this to
-  // TOP, LEFT, BOTTOM, RIGHT
-  ui.setIndicatorPosition(BOTTOM);
-
-  // Defines where the first frame is located in the bar.
-  ui.setIndicatorDirection(LEFT_RIGHT);
-
-  // You can change the transition that is used
-  // SLIDE_LEFT, SLIDE_RIGHT, SLIDE_TOP, SLIDE_DOWN
-  ui.setFrameAnimation(SLIDE_LEFT);
-
-  ui.setFrames(frames, numberOfFrames);
-
-  ui.setOverlays(overlays, numberOfOverlays);
-
-  // Inital UI takes care of initalising the display too.
-  ui.init();
-
-  Serial.println("");
-
   display.flipScreenVertically();
+  display.setFont(ArialMT_Plain_10);
 
   updateData(&display);
-
-  ticker.attach(UPDATE_INTERVAL_SECS, setReadyForWeatherUpdate);
+  display.display();
 }
+
 
 void loop() {
+  // clear the display
+  display.clear();
+  // draw the current demo method
+  drawNetStatus(&display);
 
-  if (readyForWeatherUpdate && ui.getUiState()->frameState == FIXED) {
-    updateData(&display);
-  }
-
-  int remainingTimeBudget = ui.update();
-
-  if (remainingTimeBudget > 0) {
-    // You can do some work here
-    // Don't do stuff if you are below your
-    // time budget.
-    delay(remainingTimeBudget);
-  }
-
+  display.display();
 }
+
 
 void drawProgress(OLEDDisplay *display, int percentage, String label) {
   display->clear();
@@ -217,41 +157,38 @@ void drawProgress(OLEDDisplay *display, int percentage, String label) {
 void updateData(OLEDDisplay *display) {
   drawProgress(display, 30, "Scanning Network...");
   delay(500);
-  readyForWeatherUpdate = false;
   drawProgress(display, 80, "Herding Cats...");
   delay(100);
 }
 
-void drawNetStatus(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+void drawNetStatus(OLEDDisplay *display) {
+  int x=0;
+  int y=0;
+  // Get scan
   std::vector<Network> netArray = scan();
-  String lineItem = "";
-  display->setTextAlignment(TEXT_ALIGN_LEFT);
-  for (int i = 0; i < 5; i++){
-    lineItem = "(" + String(netArray[i].RSSI) + ") " + String(netArray[i].SSID);
-    display->drawString(x, y+(10*i), lineItem);
-  }
-}
-
-void drawHeaderOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
+  // Set defaults for text
   display->setColor(WHITE);
   display->setFont(ArialMT_Plain_10);
 
+  // Set header
+  display->setTextAlignment(TEXT_ALIGN_CENTER);
+  String banner = "[=== (" + String(netArray.size()) + ") Networks ===]";
+  display->drawString(64, 0, banner);
+
+  // Draw the networks
+  String lineItem = "";
   display->setTextAlignment(TEXT_ALIGN_LEFT);
-  String left = "left";
-  display->drawString(0, 54, left);
-
-  display->setTextAlignment(TEXT_ALIGN_RIGHT);
-  String right = "right";
-  display->drawString(128, 54, right);
-
-  display->drawHorizontalLine(0, 52, 128);
+  for (int i = 0; i < 6; i++){
+    String spaces;
+    if (netArray[i].channel >= 10){
+      spaces = "  ";
+    } else {
+      spaces = "    ";
+    }
+    lineItem = String(netArray[i].RSSI) + "  " + String(netArray[i].channel) + spaces + String(netArray[i].SSID);
+    display->drawString(x, 10+y+(8*i), lineItem);
+  }
 }
-
-void setReadyForWeatherUpdate() {
-  Serial.println("Setting readyForUpdate to true");
-  readyForWeatherUpdate = true;
-}
-
 
 
 void setupScan(){
