@@ -1,6 +1,6 @@
 # ESP8266 War Walker
 
-This project was partly inspired by (War Collar Industries' Dope Scope)[http://warcollar.com/products/dopescope.html] and partly inspired by always having to fix friends' or family's WiFi Access Points.
+This project was partly inspired by [War Collar Industries' Dope Scope](http://warcollar.com/products/dopescope.html) and partly inspired by always having to fix friends' or family's WiFi Access Points.
 
 ![Finished Product](images/finished.jpg)
 
