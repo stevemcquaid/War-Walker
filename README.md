@@ -75,18 +75,16 @@ OLED Pins -> ESP8266 Pins
 To load the firmware onto the ESP8266 I used Platformio.
 
   * Install the drivers for your ESP8266/NodeMCU board.
-  * Install platformio
-  * Install the correct board for platformio to know what to build against
+  * Install [PlatformIO IDE](http://platformio.org/platformio-ide)
+  * Clone this repository or download ZIP archive (unpack it)
+  * PlatformIO IDE `Menu: PlatformIO > Open Project folder`, where specify path to folder that contains `platformio.ini`.
+  * Install the correct board for PlatformIO (`Menu: PlatformIO > Initialize or Update PlatformIO Project`) to know what to build against
     * I've included my platformio.ini file for reference
-  * Install libraries 561, 562 and 563 with "platformio lib install"
-    * `pio lib install 561`
-    * `pio lib install 562`
-    * `pio lib install 563`
   * Sanity check yourself by running a hello world blink program using the onboard LED. If you are stuck with anything before this, google + stack overflow will be your best friends.
   * Build and upload the firmware
-    * `pio run -t upload`
+    * `Menu: PlatformIO > Upload` or using CLI `pio run -t upload`
   * Monitor the Serial connection for debugging purposes
-    * `pio -f -c atom serialports monitor --port /dev/cu.wchusbserial1410 --baud 115200`
+    * `Menu: PlatformIO > Serial Monitor` or using CLI `pio device monitor --baud 115200`
   * Profit!
 
 Happy War Walking y'all!
